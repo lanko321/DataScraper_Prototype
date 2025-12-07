@@ -152,3 +152,9 @@ cp .env.example .env
 #   CF_WORKER_PROXY_URL=https://your-worker-id.workers.dev/
 
 flask --app app.py run
+```
+
+## Troubleshooting
+
+- On some Windows machines, Cloudflare `*.workers.dev` domains might not resolve because of DNS settings. In that case the app will automatically fall back to the local demo summariser, and results will still be shown, just not via the remote AI proxy.
+- Make sure to create a `.env` file from `.env.example` and set `CF_WORKER_PROXY_URL` to the deployed Cloudflare Worker URL. Without this, the proxy path will also fall back to the local demo summariser.

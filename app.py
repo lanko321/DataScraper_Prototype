@@ -8,6 +8,7 @@ and AI summarisation via a Cloudflare Worker proxy.
 import os
 from typing import Any, Dict, Optional
 
+import logging
 from dotenv import load_dotenv
 from flask import Flask, Response, redirect, render_template, request, session, url_for
 
@@ -20,6 +21,9 @@ from scrapers.urbinfo_api import fetch_zoning_layers
 
 # Load environment variables early; prototype-level configuration.
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
@@ -100,6 +104,8 @@ def index():
             "zoning": zoning_data,
         }
 
+        logger.info("RAW_DATA: %s", raw_data)
+
         # AI summary (currently local/proxy demo path).
         ai_summary = summarizer.summarize(raw_data)
         session["last_ai_summary"] = ai_summary
@@ -138,5 +144,6 @@ def set_api_key():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Local run only; use a proper WSGI server in production.
+    app.run(debug=False)
 

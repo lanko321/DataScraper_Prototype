@@ -6,12 +6,14 @@ via a Cloudflare Worker proxy or a local demo pathway.
 """
 
 import os
+import logging
 from typing import Any, Dict, List
 
 import requests
 from flask import session
 
 CF_WORKER_PROXY_URL = os.getenv("CF_WORKER_PROXY_URL", "")
+logger = logging.getLogger(__name__)
 
 
 def _safe(value: Any, default: str = "—") -> str:
@@ -90,6 +92,7 @@ def _build_demo_summary(raw_data: Dict[str, Any]) -> Dict[str, Any]:
 def summarize_via_proxy(raw_data: Dict[str, Any]) -> Dict[str, Any]:
     """Use the Cloudflare Worker proxy when CF_WORKER_PROXY_URL is provided; fall back to local build on error."""
     if not CF_WORKER_PROXY_URL or not CF_WORKER_PROXY_URL.strip():
+        logger.info("Proxy URL not configured; using demo summariser.")
         return _build_demo_summary(raw_data)
 
     try:
@@ -100,10 +103,10 @@ def summarize_via_proxy(raw_data: Dict[str, Any]) -> Dict[str, Any]:
         )
         if resp.status_code == 200:
             return resp.json()
-        print(f"[summarizer] Proxy status {resp.status_code}, falling back to demo.")
+        logger.warning("Proxy status %s, falling back to demo.", resp.status_code)
         return _build_demo_summary(raw_data)
     except Exception as exc:  # pragma: no cover - network/parse errors
-        print(f"[summarizer] Proxy call failed: {exc}, falling back to demo.")
+        logger.warning("Proxy call failed: %s, falling back to demo.", exc)
         return _build_demo_summary(raw_data)
 
 
